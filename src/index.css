@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-display: 'Cinzel', serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --color-amoorion-bg: #07090e;
+  --color-amoorion-card: #0d101a;
+  --color-amoorion-rose: #e14c62;
+  --color-amoorion-gold: #e2a893;
+}
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background-color: #07090e;
+    color: #f2e9e4;
+  }
+
+  h1, h2, h3, .font-serif-title {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+  }
+
+  .font-brand {
+    font-family: 'Cinzel', serif;
+  }
+}
+
+/* Custom gothic romantic glow & scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #07090e;
+}
+::-webkit-scrollbar-thumb {
+  background: #251624;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #e14c62;
+}
+
+.gothic-glow {
+  box-shadow: 0 0 25px rgba(225, 76, 98, 0.25), inset 0 0 15px rgba(225, 76, 98, 0.1);
+}
+
+.rose-border {
+  border: 1px solid rgba(226, 168, 147, 0.25);
+}
+
+.rose-border-hover:hover {
+  border-color: rgba(225, 76, 98, 0.6);
+  box-shadow: 0 0 20px rgba(225, 76, 98, 0.2);
+}

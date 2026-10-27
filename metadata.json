@@ -1,0 +1,6 @@
+{
+  "name": "Amoorion — One heart for all your conversations",
+  "description": "Official website and headless CMS for Amoorion, an open-source social communication hub bringing conversations together across platforms.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
