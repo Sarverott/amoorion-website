@@ -5,16 +5,16 @@ import { FeaturesSection } from './components/FeaturesSection';
 import { MeetAmoorionSection } from './components/MeetAmoorionSection';
 import { EcosystemSection } from './components/EcosystemSection';
 import { Footer } from './components/Footer';
-import { HeadlessCmsModal } from './components/HeadlessCmsModal';
+import { OpenApiSetupModal } from './components/OpenApiSetupModal';
 import { DEFAULT_SITE_CONTENT } from './data/default-content';
 import { SiteContent, SupportedLanguage } from './types/content';
 import { mergeContentWithDefaults } from './utils/content-parser';
-import { Sliders, Sparkles } from 'lucide-react';
+import { Zap, ExternalLink } from 'lucide-react';
 
 export default function App() {
   const [content, setContent] = useState<SiteContent>(() => {
     try {
-      const saved = localStorage.getItem('amoorion_site_content');
+      const saved = localStorage.getItem('amoorion_site_content_v0433');
       if (saved) {
         return mergeContentWithDefaults(JSON.parse(saved), DEFAULT_SITE_CONTENT);
       }
@@ -30,7 +30,6 @@ export default function App() {
       if (saved && ['en', 'pl', 'es', 'de', 'ja', 'fr'].includes(saved)) {
         return saved;
       }
-      // Check navigator language
       const navLang = navigator.language.slice(0, 2).toLowerCase();
       if (['en', 'pl', 'es', 'de', 'ja', 'fr'].includes(navLang)) {
         return navLang as SupportedLanguage;
@@ -41,10 +40,9 @@ export default function App() {
     return 'en';
   });
 
-  const [isCmsOpen, setIsCmsOpen] = useState(false);
+  const [isOpenApiStudioOpen, setIsOpenApiStudioOpen] = useState(false);
   const [repoStats, setRepoStats] = useState<{ stars?: number; forks?: number }>({});
 
-  // Sync language to localStorage
   const handleLanguageChange = (lang: SupportedLanguage) => {
     setCurrentLang(lang);
     try {
@@ -54,17 +52,16 @@ export default function App() {
     }
   };
 
-  // Sync content to state and localStorage
   const handleSaveContent = (updated: SiteContent) => {
     setContent(updated);
     try {
-      localStorage.setItem('amoorion_site_content', JSON.stringify(updated));
+      localStorage.setItem('amoorion_site_content_v0433', JSON.stringify(updated));
     } catch {
       // ignore
     }
   };
 
-  // Fetch real GitHub stats from backend
+  // Fetch repository stats from decoupled backend route
   useEffect(() => {
     fetch('/api/github/repo?owner=sarverott&repo=amoorion')
       .then((res) => (res.ok ? res.json() : null))
@@ -78,27 +75,27 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#07090e] text-[#f2e9e4] flex flex-col font-sans selection:bg-[#e14c62] selection:text-white">
-      {/* Top Navigation */}
+      {/* Top Navigation Header */}
       <Header
         content={content}
         currentLang={currentLang}
         onLanguageChange={handleLanguageChange}
-        onOpenCms={() => setIsCmsOpen(true)}
+        onOpenOpenApiStudio={() => setIsOpenApiStudioOpen(true)}
         starsCount={repoStats.stars}
       />
 
-      {/* Main Content Sections matching mockup */}
+      {/* Main Content Sections */}
       <main className="flex-1">
         {/* Section 1: Hero Section */}
         <HeroSection content={content} currentLang={currentLang} />
 
-        {/* Section 2: One hub. Many connections. (3 Features) */}
+        {/* Section 2: Features Section with Subpage Link Popups */}
         <FeaturesSection content={content} currentLang={currentLang} />
 
         {/* Section 3: Meet Amoorion */}
         <MeetAmoorionSection content={content} currentLang={currentLang} />
 
-        {/* Section 4: Ecosystem & Developer Quickstart */}
+        {/* Section 4: Ecosystem with xterm.js Terminal & Highlighted Code & Subpages */}
         <EcosystemSection content={content} currentLang={currentLang} />
       </main>
 
@@ -107,29 +104,29 @@ export default function App() {
         content={content}
         currentLang={currentLang}
         onLanguageChange={handleLanguageChange}
-        onOpenCms={() => setIsCmsOpen(true)}
+        onOpenOpenApiStudio={() => setIsOpenApiStudioOpen(true)}
       />
 
-      {/* Headless Content Studio Modal */}
-      <HeadlessCmsModal
-        isOpen={isCmsOpen}
-        onClose={() => setIsCmsOpen(false)}
+      {/* OpenAPI Explorer & Remote Setup Modal (Decoupled Architecture) */}
+      <OpenApiSetupModal
+        isOpen={isOpenApiStudioOpen}
+        onClose={() => setIsOpenApiStudioOpen(false)}
         currentContent={content}
         onSaveContent={handleSaveContent}
         currentLang={currentLang}
       />
 
-      {/* Floating Quick CMS button for easy access */}
-      <div className="fixed bottom-6 right-6 z-40">
+      {/* Floating Quick OpenAPI & Remote Setup button */}
+      <div className="fixed bottom-6 right-6 z-40 flex items-center gap-2">
         <button
-          onClick={() => setIsCmsOpen(true)}
+          onClick={() => setIsOpenApiStudioOpen(true)}
           className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#141926]/90 backdrop-blur-md border border-rose-600/50 text-xs font-semibold text-rose-200 hover:text-white hover:bg-rose-950/70 hover:border-rose-400 shadow-[0_0_20px_rgba(225,76,98,0.3)] transition-all hover:scale-105 active:scale-95 group"
-          title="Open Headless CMS Studio"
-          aria-label="Open Headless CMS Studio"
+          title="Open OpenAPI & Remote Setup Studio"
+          aria-label="Open OpenAPI & Remote Setup Studio"
         >
-          <Sliders className="w-4 h-4 text-rose-400 group-hover:rotate-45 transition-transform" />
-          <span>Headless CMS</span>
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+          <Zap className="w-4 h-4 text-rose-400 group-hover:scale-110 transition-transform" />
+          <span>OpenAPI &amp; Setups</span>
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
         </button>
       </div>
     </div>

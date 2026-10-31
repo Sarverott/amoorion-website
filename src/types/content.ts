@@ -7,6 +7,30 @@ export interface LanguageOption {
   flag: string;
 }
 
+export interface MarimoExample {
+  id: string;
+  title: string;
+  description: string;
+  category: 'core' | 'protocols' | 'daemons' | 'workflows';
+  htmlPath: string; // e.g. "examples/01-getting-started.html"
+  badge: string;
+}
+
+export interface PackageVersion {
+  name: string;
+  version: string;
+  category: 'core' | 'publication' | 'communication' | 'bridge';
+  description: string;
+}
+
+export interface SubpageLink {
+  title: string;
+  url: string;
+  description: string;
+  isExternal?: boolean;
+  category: 'portal' | 'docs' | 'agents' | 'examples';
+}
+
 export interface FeatureCardContent {
   id: string;
   title: string;
@@ -16,9 +40,12 @@ export interface FeatureCardContent {
   image?: string;
   badge?: string;
   details?: string[];
+  relatedExamples?: string[];
+  docAnchor?: string;
 }
 
 export interface SiteContent {
+  version: string;
   brand: {
     name: string;
     tagline: string;
@@ -26,6 +53,7 @@ export interface SiteContent {
   };
   hero: {
     badge: string;
+    versionBadge: string;
     title: string;
     titleHighlight?: string;
     subtitle: string;
@@ -53,32 +81,21 @@ export interface SiteContent {
     readthedocs: string;
     pypi: string;
     githubPages: string;
+    projectHtml: string;
+    releasesHtml: string;
+    examplesIndex: string;
+    manifestJson: string;
+    llmsTxt: string;
+    agentSkill: string;
   };
-  cmsConfig: {
-    repoOwner: string;
-    repoName: string;
-    branch: string;
-    contentFilePath: string;
-    lastSyncedAt?: string;
-    lastCommitSha?: string;
+  subpages: SubpageLink[];
+  featuredExamples: MarimoExample[];
+  packages: PackageVersion[];
+  openApiConfig: {
+    specUrl: string;
+    setupSourceUrl: string;
+    activeServer: string;
   };
-}
-
-export interface GitCommitInfo {
-  sha: string;
-  message: string;
-  author: {
-    name: string;
-    email: string;
-    date: string;
-  };
-  html_url?: string;
-}
-
-export interface GitHubAuthStatus {
-  hasServerToken: boolean;
-  user: string | null;
-  defaultRepo: string;
 }
 
 export interface TranslationDictionary {
@@ -87,9 +104,12 @@ export interface TranslationDictionary {
     about: string;
     features: string;
     contribute: string;
+    project: string;
+    releases: string;
+    examples: string;
     docs: string;
     viewOnGithub: string;
-    contentStudio: string;
+    openApiStudio: string;
     pypi: string;
   };
   hero: {
@@ -98,6 +118,7 @@ export interface TranslationDictionary {
     subtitle: string;
     exploreBtn: string;
     githubBtn: string;
+    projectBtn: string;
     copyCommand: string;
     copied: string;
   };
@@ -123,16 +144,12 @@ export interface TranslationDictionary {
       humane: string;
     };
   };
-  cms: {
+  ecosystem: {
     title: string;
-    description: string;
-    syncWithGit: string;
-    commitToGit: string;
-    localPreview: string;
-    repoConfig: string;
-    statusConnected: string;
-    statusReadOnly: string;
-    commitMessagePrompt: string;
+    subtitle: string;
+    terminalTitle: string;
+    codeTitle: string;
+    examplesTitle: string;
   };
   footer: {
     builtWithLove: string;

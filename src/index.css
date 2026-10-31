@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "@xterm/xterm/css/xterm.css";
 
 @theme {
   --font-serif: 'Cormorant Garamond', Georgia, serif;
@@ -52,4 +53,63 @@
 .rose-border-hover:hover {
   border-color: rgba(225, 76, 98, 0.6);
   box-shadow: 0 0 20px rgba(225, 76, 98, 0.2);
+}
+
+/* xterm.js custom theme container */
+.xterm-container .xterm {
+  padding: 12px;
+}
+.xterm-container .xterm-viewport {
+  background-color: transparent !important;
+}
+
+/* Prism syntax highlighting classes */
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: #8c7885;
+  font-style: italic;
+}
+.token.punctuation {
+  color: #b9a9a3;
+}
+.token.property,
+.token.tag,
+.token.boolean,
+.token.number,
+.token.constant,
+.token.symbol,
+.token.deleted {
+  color: #f38ba8;
+}
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin,
+.token.inserted {
+  color: #e2a893;
+}
+.token.operator,
+.token.entity,
+.token.url,
+.language-css .token.string,
+.style .token.string {
+  color: #fab387;
+}
+.token.atrule,
+.token.attr-value,
+.token.keyword {
+  color: #e14c62;
+  font-weight: 600;
+}
+.token.function,
+.token.class-name {
+  color: #89dceb;
+}
+.token.regex,
+.token.important,
+.token.variable {
+  color: #f9e2af;
 }

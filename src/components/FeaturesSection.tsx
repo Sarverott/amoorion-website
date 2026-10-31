@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Feather, MessageSquare, Share2, Sparkles, ChevronRight, CheckCircle2, ShieldCheck, Cpu } from 'lucide-react';
+import { Feather, MessageSquare, Share2, ChevronRight, CheckCircle2, Cpu, ExternalLink, BookOpen, Layers, Sparkles } from 'lucide-react';
 import { SiteContent, SupportedLanguage, FeatureCardContent } from '../types/content';
 import { TRANSLATIONS } from '../locales/translations';
 
@@ -95,14 +95,14 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ content, curre
                   <button
                     onClick={() => setSelectedCard(card)}
                     className="inline-flex items-center gap-1.5 text-xs font-medium text-rose-400 hover:text-rose-200 transition-colors pt-1 focus:outline-none"
-                    aria-label={`View protocol details for ${title}`}
+                    aria-label={`View protocol details and subpages for ${title}`}
                   >
                     <span>{t.features.learnMore}</span>
                     <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                   </button>
                 </div>
 
-                {/* Bottom Section: Pristine Artwork extracted from mockup without duplicate text */}
+                {/* Bottom Section: Artwork extracted from mockup */}
                 <div className="relative mt-auto w-full h-48 sm:h-52 overflow-hidden border-t border-rose-950/70 bg-[#07090e]">
                   <div className="absolute inset-0 bg-gradient-to-t from-[#07090e]/80 via-transparent to-[#0c0f18]/60 z-10 pointer-events-none" />
                   <img
@@ -119,9 +119,12 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ content, curre
                       <Cpu className="w-3 h-3 text-rose-400" />
                       {card.badge || 'Open Hub'}
                     </span>
-                    <span className="text-[10px] text-rose-400/90 hover:underline cursor-pointer" onClick={() => setSelectedCard(card)}>
-                      Details →
-                    </span>
+                    <button
+                      onClick={() => setSelectedCard(card)}
+                      className="text-[10px] text-rose-400/90 hover:underline hover:text-white"
+                    >
+                      Links &amp; Specs →
+                    </button>
                   </div>
                 </div>
               </div>
@@ -130,22 +133,22 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ content, curre
         </div>
       </div>
 
-      {/* Protocol Details Modal when user clicks "Explore Protocol" */}
+      {/* Protocol Details & Subpages Modal */}
       {selectedCard && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in"
           role="dialog"
           aria-modal="true"
         >
-          <div className="relative w-full max-w-lg rounded-3xl bg-[#0e121d] border border-rose-800/60 p-6 sm:p-8 shadow-2xl space-y-6">
+          <div className="relative w-full max-w-2xl rounded-3xl bg-[#0e121d] border border-rose-800/60 p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-rose-950/60 border border-rose-500/50 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full bg-rose-950/60 border border-rose-500/50 flex items-center justify-center shadow-[0_0_15px_rgba(225,76,98,0.4)]">
                   {getIcon(selectedCard.icon)}
                 </div>
                 <div>
                   <h4 className="text-2xl font-serif text-[#fbf6f3]">{getLocalizedTitle(selectedCard)}</h4>
-                  <p className="text-xs text-rose-300/70">{selectedCard.subtitle || 'Amoorion Core Architecture'}</p>
+                  <p className="text-xs text-rose-300/70">{selectedCard.subtitle || 'Amoorion Architecture'}</p>
                 </div>
               </div>
               <button
@@ -164,19 +167,94 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ content, curre
             {/* Feature Checklist */}
             <div className="space-y-2.5 bg-[#090b12] p-4 rounded-2xl border border-rose-950">
               <div className="text-xs font-semibold text-rose-300 uppercase tracking-wider mb-2">
-                Capabilities & Integration Specs:
+                Capabilities &amp; Integration Specs (v0.4.33):
               </div>
-              {(selectedCard.details || [
-                'Interoperable with decentralized protocols',
-                'Cryptographic verification & signing',
-                'High throughput asynchronous python pipeline',
-                'Unified metadata envelope format',
-              ]).map((detail, idx) => (
+              {(selectedCard.details || []).map((detail, idx) => (
                 <div key={idx} className="flex items-center gap-2.5 text-xs text-rose-100/90">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                   <span>{detail}</span>
                 </div>
               ))}
+            </div>
+
+            {/* Direct Subpage Linking */}
+            <div className="space-y-3 pt-1">
+              <div className="text-xs font-semibold text-rose-300 uppercase tracking-wider flex items-center gap-1.5">
+                <ExternalLink className="w-3.5 h-3.5 text-rose-400" />
+                <span>Linked Subpages &amp; Notebooks:</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <a
+                  href="https://sarverott.github.io/amoorion/project.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-3 rounded-xl bg-[#121522] border border-rose-900/40 hover:border-rose-400 hover:bg-[#181c2d] transition-all flex items-center justify-between text-xs text-rose-100 group"
+                >
+                  <div className="space-y-0.5">
+                    <span className="font-semibold group-hover:text-white">Project Overview</span>
+                    <div className="text-[10px] text-gray-400">project.html documentation</div>
+                  </div>
+                  <ExternalLink className="w-3.5 h-3.5 text-rose-400" />
+                </a>
+
+                <a
+                  href="https://sarverott.github.io/amoorion/releases.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-3 rounded-xl bg-[#121522] border border-rose-900/40 hover:border-rose-400 hover:bg-[#181c2d] transition-all flex items-center justify-between text-xs text-rose-100 group"
+                >
+                  <div className="space-y-0.5">
+                    <span className="font-semibold group-hover:text-white">Release Notes</span>
+                    <div className="text-[10px] text-gray-400">Version 0.4.33 milestone</div>
+                  </div>
+                  <ExternalLink className="w-3.5 h-3.5 text-rose-400" />
+                </a>
+
+                {selectedCard.icon === 'publish' && (
+                  <a
+                    href="https://sarverott.github.io/amoorion/examples/20-all-socialmedia-posting-from-one-script.html"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-3 rounded-xl bg-[#121522] border border-rose-900/40 hover:border-rose-400 hover:bg-[#181c2d] transition-all flex items-center justify-between text-xs text-rose-100 group sm:col-span-2"
+                  >
+                    <div className="space-y-0.5">
+                      <span className="font-semibold text-rose-300">Marimo Notebook: Cross-Posting Script</span>
+                      <div className="text-[10px] text-gray-400">examples/20-all-socialmedia-posting-from-one-script.html</div>
+                    </div>
+                    <ExternalLink className="w-3.5 h-3.5 text-rose-400" />
+                  </a>
+                )}
+
+                {selectedCard.icon === 'reply' && (
+                  <a
+                    href="https://sarverott.github.io/amoorion/examples/17-unified-inbox.html"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-3 rounded-xl bg-[#121522] border border-rose-900/40 hover:border-rose-400 hover:bg-[#181c2d] transition-all flex items-center justify-between text-xs text-rose-100 group sm:col-span-2"
+                  >
+                    <div className="space-y-0.5">
+                      <span className="font-semibold text-rose-300">Marimo Notebook: Unified Inbox Stream</span>
+                      <div className="text-[10px] text-gray-400">examples/17-unified-inbox.html</div>
+                    </div>
+                    <ExternalLink className="w-3.5 h-3.5 text-rose-400" />
+                  </a>
+                )}
+
+                {selectedCard.icon === 'connect' && (
+                  <a
+                    href="https://sarverott.github.io/amoorion/examples/13-mcp-in-action.html"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-3 rounded-xl bg-[#121522] border border-rose-900/40 hover:border-rose-400 hover:bg-[#181c2d] transition-all flex items-center justify-between text-xs text-rose-100 group sm:col-span-2"
+                  >
+                    <div className="space-y-0.5">
+                      <span className="font-semibold text-rose-300">Marimo Notebook: MCP in Action &amp; AI Agents</span>
+                      <div className="text-[10px] text-gray-400">examples/13-mcp-in-action.html</div>
+                    </div>
+                    <ExternalLink className="w-3.5 h-3.5 text-rose-400" />
+                  </a>
+                )}
+              </div>
             </div>
 
             <div className="flex items-center justify-between pt-2">
@@ -186,12 +264,12 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ content, curre
                 rel="noopener noreferrer"
                 className="text-xs font-medium text-rose-400 hover:text-white flex items-center gap-1.5"
               >
-                <span>Read technical docs on ReadTheDocs</span>
+                <span>Read technical manual on ReadTheDocs</span>
                 <span>→</span>
               </a>
               <button
                 onClick={() => setSelectedCard(null)}
-                className="px-4 py-2 rounded-xl bg-rose-900/40 hover:bg-rose-800/60 border border-rose-600/50 text-xs font-medium text-white transition-colors"
+                className="px-5 py-2 rounded-xl bg-rose-900/50 hover:bg-rose-800/70 border border-rose-600/50 text-xs font-medium text-white transition-colors"
               >
                 Close
               </button>

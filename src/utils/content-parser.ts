@@ -54,7 +54,7 @@ export function validateContentSchema(data: unknown): ValidationResult {
 }
 
 /**
- * Safely merges user-supplied or remote git content with full fallback defaults
+ * Safely merges user-supplied or remote git/OpenAPI content with full fallback defaults
  */
 export function mergeContentWithDefaults(
   custom: Partial<SiteContent> | null | undefined,
@@ -65,6 +65,7 @@ export function mergeContentWithDefaults(
   return {
     ...defaultContent,
     ...custom,
+    version: custom.version || defaultContent.version,
     brand: {
       ...defaultContent.brand,
       ...(custom.brand || {}),
@@ -96,30 +97,22 @@ export function mergeContentWithDefaults(
       ...defaultContent.links,
       ...(custom.links || {}),
     },
-    cmsConfig: {
-      ...defaultContent.cmsConfig,
-      ...(custom.cmsConfig || {}),
+    subpages:
+      Array.isArray(custom.subpages) && custom.subpages.length > 0
+        ? custom.subpages
+        : defaultContent.subpages,
+    featuredExamples:
+      Array.isArray(custom.featuredExamples) && custom.featuredExamples.length > 0
+        ? custom.featuredExamples
+        : defaultContent.featuredExamples,
+    packages:
+      Array.isArray(custom.packages) && custom.packages.length > 0
+        ? custom.packages
+        : defaultContent.packages,
+    openApiConfig: {
+      ...defaultContent.openApiConfig,
+      ...(custom.openApiConfig || {}),
     },
-  };
-}
-
-/**
- * Prepares the Git commit payload with base64 encoded content for GitHub REST API / isomorphic-git
- */
-export function createGitCommitPayload(
-  content: SiteContent,
-  message: string,
-  branch = 'main',
-  sha?: string
-) {
-  const jsonString = JSON.stringify(content, null, 2);
-  const contentBase64 = Buffer.from(jsonString).toString('base64');
-
-  return {
-    message: message.trim() || `Update site content via Amoorion Headless CMS [${new Date().toISOString()}]`,
-    content: contentBase64,
-    branch,
-    ...(sha ? { sha } : {}),
   };
 }
 

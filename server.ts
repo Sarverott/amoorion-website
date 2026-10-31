@@ -2,7 +2,6 @@ import express, { Request, Response } from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { Octokit } from 'octokit';
 
 dotenv.config();
 
@@ -14,276 +13,451 @@ const PORT = 3000;
 
 app.use(express.json({ limit: '10mb' }));
 
-// Helper to get authenticated or unauthenticated Octokit instance
-function getOctokit(customToken?: string): Octokit {
-  const token = customToken || process.env.GITHUB_TOKEN;
-  if (token && token.trim().length > 0) {
-    return new Octokit({ auth: token.trim() });
-  }
-  return new Octokit();
-}
+// Standard OpenAPI 3.1.0 specification for Amoorion v0.4.33 Daemon & HTTP REST API
+const AMOORION_OPENAPI_SPEC = {
+  openapi: '3.1.0',
+  info: {
+    title: 'Amoorion Universal Communication API',
+    version: '0.4.33',
+    description:
+      'Universal tool for administration of chatting and communication platforms: publish, read and reply on many platforms from one HTTP API, CLI, or MCP server.',
+    contact: {
+      name: 'Sett Sarverott & Amoorion Contributors',
+      url: 'https://github.com/Sarverott/amoorion',
+    },
+    license: {
+      name: 'MIT / Apache-2.0',
+      url: 'https://github.com/Sarverott/amoorion/blob/master/LICENSE',
+    },
+  },
+  servers: [
+    {
+      url: 'http://localhost:8080',
+      description: 'Local Amoorion Daemon Server',
+    },
+    {
+      url: 'https://api.amoorion.net/v1',
+      description: 'Federated Gateway (Mock/Staging)',
+    },
+  ],
+  tags: [
+    { name: 'Publish', description: 'Cross-platform broadcast and publication' },
+    { name: 'Inbox', description: 'Unified multi-platform messaging stream' },
+    { name: 'Platforms', description: 'Connected social protocols and driver status' },
+    { name: 'Vault', description: 'Secure credential storage (KeePassXC / Bitwarden)' },
+    { name: 'Daemon', description: 'Background service and event loop control' },
+    { name: 'MCP', description: 'Model Context Protocol tool endpoints for AI agents' },
+  ],
+  paths: {
+    '/api/v1/publish': {
+      post: {
+        tags: ['Publish'],
+        summary: 'Broadcast a post across platforms',
+        description: 'Post text and attachments to selected platforms or all configured channels.',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['message'],
+                properties: {
+                  message: {
+                    type: 'string',
+                    example: 'Hello open social web! One heart, many connections.',
+                  },
+                  platforms: {
+                    type: 'array',
+                    items: { type: 'string' },
+                    example: ['bluesky', 'mastodon', 'matrix'],
+                  },
+                  media_urls: {
+                    type: 'array',
+                    items: { type: 'string', format: 'uri' },
+                    example: [],
+                  },
+                  dry_run: {
+                    type: 'boolean',
+                    default: false,
+                    description: 'Simulate without posting to live platform accounts',
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Broadcast results per platform',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    status: { type: 'string', example: 'ok' },
+                    published_to: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          platform: { type: 'string' },
+                          post_id: { type: 'string' },
+                          url: { type: 'string' },
+                        },
+                      },
+                    },
+                    timestamp: { type: 'string', format: 'date-time' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/api/v1/inbox': {
+      get: {
+        tags: ['Inbox'],
+        summary: 'Retrieve unified incoming messages',
+        description: 'Fetch aggregated messages across Bluesky, Telegram, Discord, Matrix, etc.',
+        parameters: [
+          {
+            name: 'unread_only',
+            in: 'query',
+            schema: { type: 'boolean', default: false },
+          },
+          {
+            name: 'platform',
+            in: 'query',
+            schema: { type: 'string' },
+          },
+          {
+            name: 'limit',
+            in: 'query',
+            schema: { type: 'integer', default: 20 },
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'List of messages from the unified inbox',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    count: { type: 'integer' },
+                    messages: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          id: { type: 'string' },
+                          platform: { type: 'string' },
+                          sender: { type: 'string' },
+                          content: { type: 'string' },
+                          received_at: { type: 'string', format: 'date-time' },
+                          is_read: { type: 'boolean' },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/api/v1/platforms': {
+      get: {
+        tags: ['Platforms'],
+        summary: 'List available and active platform plugins',
+        description: 'Returns all loaded driver plugins and their connection health.',
+        responses: {
+          '200': {
+            description: 'Active platform driver specifications',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    version: { type: 'string', example: '0.4.33' },
+                    plugins: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          name: { type: 'string' },
+                          type: { type: 'string', enum: ['publication', 'communication', 'bridge'] },
+                          version: { type: 'string' },
+                          connected: { type: 'boolean' },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/api/v1/vault/status': {
+      get: {
+        tags: ['Vault'],
+        summary: 'Inspect credentials vault status',
+        description: 'Check KeePassXC or Bitwarden vault state and configured credentials.',
+        responses: {
+          '200': {
+            description: 'Vault health check',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    backend: { type: 'string', example: 'keepassxc' },
+                    unlocked: { type: 'boolean', example: true },
+                    platforms_configured: {
+                      type: 'array',
+                      items: { type: 'string' },
+                      example: ['bluesky', 'mastodon', 'matrix', 'discord', 'telegram'],
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/api/v1/mcp/tools': {
+      get: {
+        tags: ['MCP'],
+        summary: 'List Model Context Protocol tools for AI agents',
+        description: 'Exposes Amoorion functions to Anthropic Claude, Codex, Gemini, and MCP clients.',
+        responses: {
+          '200': {
+            description: 'Available MCP tools',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    tools: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          name: { type: 'string' },
+                          description: { type: 'string' },
+                          inputSchema: { type: 'object' },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/api/v1/daemon/status': {
+      get: {
+        tags: ['Daemon'],
+        summary: 'Get daemon process status',
+        responses: {
+          '200': {
+            description: 'Daemon uptime and active tasks',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    running: { type: 'boolean', example: true },
+                    version: { type: 'string', example: '0.4.33' },
+                    uptime_seconds: { type: 'number' },
+                    nats_connected: { type: 'boolean' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
 
 // 1. Health check
 app.get('/api/health', (_req: Request, res: Response) => {
   res.json({
     status: 'ok',
+    version: '0.4.33',
     timestamp: new Date().toISOString(),
-    service: 'amoorion-server',
+    service: 'amoorion-website-backend',
   });
 });
 
-// 2. Auth & Git Status
-app.get('/api/github/status', (_req: Request, res: Response) => {
-  const token = process.env.GITHUB_TOKEN;
-  const hasServerToken = Boolean(token && token.trim().length > 0);
-  
+// 2. Standard OpenAPI specification endpoint
+app.get('/api/openapi/spec', (_req: Request, res: Response) => {
+  res.json(AMOORION_OPENAPI_SPEC);
+});
+
+// 3. Proxy & load OpenAPI specification from any remote URL (decoupled architecture)
+app.get('/api/openapi/proxy', async (req: Request, res: Response) => {
+  const targetUrl = req.query.url as string;
+  if (!targetUrl) {
+    return res.json(AMOORION_OPENAPI_SPEC);
+  }
+
+  try {
+    const response = await fetch(targetUrl, {
+      headers: {
+        Accept: 'application/json, text/yaml, text/plain, */*',
+        'User-Agent': 'Amoorion-Web-Setup-Loader/0.4.33',
+      },
+    });
+
+    if (!response.ok) {
+      return res.status(response.status).json({
+        error: `Remote server responded with ${response.status}: ${response.statusText}`,
+        url: targetUrl,
+      });
+    }
+
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('json') || targetUrl.endsWith('.json')) {
+      const data = await response.json();
+      return res.json({ spec: data, source: targetUrl, format: 'json' });
+    } else {
+      const text = await response.text();
+      return res.json({ raw: text, source: targetUrl, format: 'yaml_or_text' });
+    }
+  } catch (error: any) {
+    res.status(502).json({
+      error: 'Failed to fetch remote OpenAPI specification',
+      message: error?.message || 'Network error',
+      url: targetUrl,
+    });
+  }
+});
+
+// 4. Load setups & manifests from external endpoints (e.g., sarverott.github.io/amoorion/manifest.json)
+app.get('/api/setup/load', async (req: Request, res: Response) => {
+  const targetUrl = (req.query.url as string) || 'https://sarverott.github.io/amoorion/manifest.json';
+
+  try {
+    const response = await fetch(targetUrl, {
+      headers: {
+        Accept: 'application/json',
+        'User-Agent': 'Amoorion-Web-Setup-Loader/0.4.33',
+      },
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return res.json({
+        success: true,
+        source: targetUrl,
+        data,
+      });
+    }
+
+    res.status(response.status).json({
+      error: `Could not load setup from ${targetUrl}`,
+      status: response.status,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      error: 'Error loading external setup',
+      message: error?.message,
+      url: targetUrl,
+    });
+  }
+});
+
+// 5. Proxy site manifest
+app.get('/api/manifest', async (_req: Request, res: Response) => {
+  try {
+    const resRemote = await fetch('https://sarverott.github.io/amoorion/manifest.json');
+    if (resRemote.ok) {
+      const data = await resRemote.json();
+      return res.json(data);
+    }
+  } catch (err) {
+    console.warn('Could not fetch remote manifest.json:', err);
+  }
+
+  // Fallback manifest matching v0.4.33
   res.json({
-    hasServerToken,
-    user: hasServerToken ? (process.env.GITHUB_USER || 'sarverott (server-env)') : null,
-    defaultRepo: 'sarverott/amoorion',
-    rateLimitWarning: !hasServerToken ? 'Unauthenticated rate limits apply (60 req/hr). Add GITHUB_TOKEN to .env for 5000 req/hr and direct write permissions.' : null,
+    name: 'amoorion',
+    version: '0.4.33',
+    repository: 'https://github.com/Sarverott/amoorion',
+    docs: 'https://amoorion.readthedocs.io/',
+    packages: {
+      amoorion: '0.4.33',
+      'amoorion-blogger': '0.4.4',
+      'amoorion-bluesky': '0.4.5',
+      'amoorion-discord': '0.4.5',
+      'amoorion-email': '0.4.10',
+      'amoorion-facebook': '0.4.4',
+      'amoorion-mastodon': '0.4.6',
+      'amoorion-matrix': '0.4.5',
+      'amoorion-ntfy': '0.4.8',
+      'amoorion-telegram': '0.4.5',
+      'amoorion-tumblr': '0.4.5',
+      'amoorion-x': '0.4.6',
+    },
+    pages: ['project.html', 'releases.html', 'examples/index.html', 'index.html'],
   });
 });
 
-// 3. Fetch Repository Information (stars, open issues, description, license)
+// 6. Repository stats proxy
 app.get('/api/github/repo', async (req: Request, res: Response) => {
   const owner = (req.query.owner as string) || 'sarverott';
   const repo = (req.query.repo as string) || 'amoorion';
-  const userToken = req.headers.authorization?.replace(/^Bearer\s+/i, '');
 
   try {
-    const octokit = getOctokit(userToken);
-    const { data } = await octokit.rest.repos.get({
-      owner,
-      repo,
-    });
+    const headers: Record<string, string> = {
+      'User-Agent': 'Amoorion-Website/0.4.33',
+    };
+    if (process.env.GITHUB_TOKEN) {
+      headers['Authorization'] = `Bearer ${process.env.GITHUB_TOKEN}`;
+    }
 
-    res.json({
-      name: data.name,
-      fullName: data.full_name,
-      description: data.description || 'Open-source social communication hub',
-      stars: data.stargazers_count,
-      forks: data.forks_count,
-      openIssues: data.open_issues_count,
-      defaultBranch: data.default_branch,
-      topics: data.topics || ['social-web', 'python', 'federation', 'interoperability'],
-      htmlUrl: data.html_url,
-      updatedAt: data.updated_at,
-      pushedAt: data.pushed_at,
-    });
-  } catch (error: any) {
-    console.warn(`[GitHub API] Failed to fetch repo ${owner}/${repo}:`, error?.message);
-    // Provide deterministic fallback so UI is always functional
-    res.json({
-      name: repo,
-      fullName: `${owner}/${repo}`,
-      description: 'One hub. Many connections. Open-source social communication hub.',
-      stars: 42,
-      forks: 6,
-      openIssues: 3,
-      defaultBranch: 'main',
-      topics: ['social-web', 'python', 'federation', 'activitypub', 'matrix'],
-      htmlUrl: `https://github.com/${owner}/${repo}`,
-      fallback: true,
-      errorNotice: error?.message || 'Rate limit or network unavailable',
-    });
-  }
-});
-
-// 4. Fetch File Content from Repository
-app.get('/api/github/content', async (req: Request, res: Response) => {
-  const owner = (req.query.owner as string) || 'sarverott';
-  const repo = (req.query.repo as string) || 'amoorion';
-  const filePath = (req.query.path as string) || 'content/site-content.json';
-  const ref = (req.query.ref as string) || 'main';
-  const userToken = req.headers.authorization?.replace(/^Bearer\s+/i, '');
-
-  try {
-    const octokit = getOctokit(userToken);
-    const { data } = await octokit.rest.repos.getContent({
-      owner,
-      repo,
-      path: filePath,
-      ref,
-    });
-
-    if ('content' in data && data.content) {
-      const decodedContent = Buffer.from(data.content, 'base64').toString('utf-8');
-      let parsed = null;
-      try {
-        parsed = JSON.parse(decodedContent);
-      } catch {
-        // Not JSON (e.g. Markdown or YAML)
-      }
-
-      res.json({
-        path: data.path,
-        sha: data.sha,
-        size: data.size,
-        content: decodedContent,
-        parsed,
-        source: 'github-remote',
+    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}`, { headers });
+    if (response.ok) {
+      const data = await response.json();
+      return res.json({
+        name: data.name,
+        fullName: data.full_name,
+        description: data.description || 'Universal tool for administration of chatting and communication platforms',
+        stars: data.stargazers_count,
+        forks: data.forks_count,
+        openIssues: data.open_issues_count,
+        defaultBranch: data.default_branch,
+        htmlUrl: data.html_url,
+        version: '0.4.33',
       });
-    } else {
-      res.status(404).json({ error: 'File content not found or is a directory' });
     }
   } catch (error: any) {
-    // If file does not exist yet in remote repository, return 404 with guidance
-    res.status(error?.status || 404).json({
-      error: error?.message || 'File not found in repository',
-      path: filePath,
-      suggestedAction: 'You can initialize and commit this configuration to repository via the Headless CMS Studio.',
-    });
-  }
-});
-
-// 5. Fetch Recent Git Commits
-app.get('/api/github/commits', async (req: Request, res: Response) => {
-  const owner = (req.query.owner as string) || 'sarverott';
-  const repo = (req.query.repo as string) || 'amoorion';
-  const userToken = req.headers.authorization?.replace(/^Bearer\s+/i, '');
-
-  try {
-    const octokit = getOctokit(userToken);
-    const { data } = await octokit.rest.repos.listCommits({
-      owner,
-      repo,
-      per_page: 8,
-    });
-
-    const commits = data.map((c) => ({
-      sha: c.sha.substring(0, 7),
-      fullSha: c.sha,
-      message: c.commit.message,
-      author: {
-        name: c.commit.author?.name || 'Contributor',
-        email: c.commit.author?.email || '',
-        date: c.commit.author?.date || new Date().toISOString(),
-      },
-      html_url: c.html_url,
-    }));
-
-    res.json({ commits, total: commits.length });
-  } catch (error: any) {
-    console.warn(`[GitHub API] Failed to fetch commits for ${owner}/${repo}:`, error?.message);
-    // Provide illustrative fallback commit history
-    res.json({
-      commits: [
-        {
-          sha: 'b84f29a',
-          fullSha: 'b84f29ae4872910d65b1285cb1d0f5e1f7051280',
-          message: 'chore: initial protocol routing foundation and configuration',
-          author: { name: 'sarverott', email: 'sarverott@gmail.com', date: '2026-10-25T14:20:00Z' },
-          html_url: `https://github.com/${owner}/${repo}/commit/b84f29a`,
-        },
-        {
-          sha: '4d193fa',
-          fullSha: '4d193fa88d12093ea6518cb1d0f5e1f7051281',
-          message: 'docs: update readthedocs guides and architecture diagrams',
-          author: { name: 'sarverott', email: 'sarverott@gmail.com', date: '2026-10-22T09:12:00Z' },
-          html_url: `https://github.com/${owner}/${repo}/commit/4d193fa`,
-        },
-        {
-          sha: '9ec0128',
-          fullSha: '9ec01287c2b309110d65b1285cb1d0f5e1f70512',
-          message: 'feat: add headless CMS configuration schema for website',
-          author: { name: 'amoorion-bot', email: 'bot@amoorion.org', date: '2026-10-20T17:45:00Z' },
-          html_url: `https://github.com/${owner}/${repo}/commit/9ec0128`,
-        },
-      ],
-      total: 3,
-      fallback: true,
-      errorNotice: error?.message || 'Unauthenticated rate limit',
-    });
-  }
-});
-
-// 6. Commit and Push Content directly to GitHub repository
-app.post('/api/github/commit', async (req: Request, res: Response) => {
-  const {
-    owner = 'sarverott',
-    repo = 'amoorion',
-    path: filePath = 'content/site-content.json',
-    branch = 'main',
-    message,
-    content,
-    sha,
-  } = req.body;
-
-  const userToken = req.headers.authorization?.replace(/^Bearer\s+/i, '');
-  const activeToken = userToken || process.env.GITHUB_TOKEN;
-
-  if (!activeToken || activeToken.trim().length === 0) {
-    return res.status(401).json({
-      error: 'GitHub Token required for write operations',
-      details: 'Configure GITHUB_TOKEN in your environment or enter your Personal Access Token in the CMS settings.',
-    });
+    console.warn(`[GitHub Repo Fetch] Warning:`, error?.message);
   }
 
-  if (!content) {
-    return res.status(400).json({ error: 'Content payload is required for commit' });
-  }
-
-  try {
-    const octokit = getOctokit(activeToken);
-    
-    // Prepare base64 string
-    const stringContent = typeof content === 'object' ? JSON.stringify(content, null, 2) : String(content);
-    const contentBase64 = Buffer.from(stringContent).toString('base64');
-
-    // If SHA was not provided, attempt to look it up so we update cleanly without conflicts
-    let existingSha = sha;
-    if (!existingSha) {
-      try {
-        const existing = await octokit.rest.repos.getContent({
-          owner,
-          repo,
-          path: filePath,
-          ref: branch,
-        });
-        if ('sha' in existing.data) {
-          existingSha = existing.data.sha;
-        }
-      } catch {
-        // File does not exist yet, will be newly created
-      }
-    }
-
-    const commitMessage = message || `Update ${filePath} via Amoorion Headless CMS`;
-
-    const { data } = await octokit.rest.repos.createOrUpdateFileContents({
-      owner,
-      repo,
-      path: filePath,
-      message: commitMessage,
-      content: contentBase64,
-      branch,
-      ...(existingSha ? { sha: existingSha } : {}),
-      committer: {
-        name: 'Amoorion CMS Bot',
-        email: 'cms@amoorion.org',
-      },
-      author: {
-        name: 'Amoorion Content Manager',
-        email: 'cms@amoorion.org',
-      },
-    });
-
-    res.json({
-      success: true,
-      commitSha: data.commit.sha,
-      commitUrl: data.commit.html_url,
-      contentSha: data.content?.sha,
-      message: commitMessage,
-      branch,
-    });
-  } catch (error: any) {
-    console.error(`[GitHub API] Failed to commit to ${owner}/${repo}:`, error);
-    res.status(error?.status || 500).json({
-      error: error?.message || 'Failed to commit to GitHub repository',
-      status: error?.status,
-    });
-  }
+  // Graceful fallback
+  res.json({
+    name: repo,
+    fullName: `${owner}/${repo}`,
+    description: 'Universal tool for administration of chatting and communication platforms: v0.4.33',
+    stars: 1,
+    forks: 0,
+    openIssues: 0,
+    defaultBranch: 'master',
+    htmlUrl: `https://github.com/${owner}/${repo}`,
+    version: '0.4.33',
+    fallback: true,
+  });
 });
 
 // Setup Vite middleware in dev or static serving in production
@@ -306,7 +480,7 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`[Amoorion Server] Running on http://0.0.0.0:${PORT} (env: ${process.env.NODE_ENV || 'development'})`);
+    console.log(`[Amoorion Server] Running on http://0.0.0.0:${PORT} (v0.4.33)`);
   });
 }
 

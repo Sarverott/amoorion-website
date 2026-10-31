@@ -1,5 +1,5 @@
 import React from 'react';
-import { Github, BookOpen, Package, Globe, Heart } from 'lucide-react';
+import { Github, BookOpen, Package, Globe, Heart, ExternalLink, Zap, Layers, FileText, Bot } from 'lucide-react';
 import { SiteContent, SupportedLanguage } from '../types/content';
 import { SUPPORTED_LANGUAGES, TRANSLATIONS } from '../locales/translations';
 
@@ -7,14 +7,14 @@ interface FooterProps {
   content: SiteContent;
   currentLang: SupportedLanguage;
   onLanguageChange: (lang: SupportedLanguage) => void;
-  onOpenCms: () => void;
+  onOpenOpenApiStudio: () => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({
   content,
   currentLang,
   onLanguageChange,
-  onOpenCms,
+  onOpenOpenApiStudio,
 }) => {
   const t = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
 
@@ -23,7 +23,7 @@ export const Footer: React.FC<FooterProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start justify-between">
           {/* Brand info */}
-          <div className="md:col-span-5 space-y-4">
+          <div className="md:col-span-4 space-y-4">
             <div className="flex items-center gap-3">
               <img
                 src="/assets/generated/logo-icon.png"
@@ -36,9 +36,12 @@ export const Footer: React.FC<FooterProps> = ({
               <span className="font-brand tracking-[0.2em] text-lg font-bold bg-gradient-to-r from-[#f7d6cd] via-[#fcdad5] to-[#e29d9c] bg-clip-text text-transparent">
                 {content.brand.logoText || 'AMOORION'}
               </span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-950/80 border border-rose-800/40 text-rose-300">
+                v{content.version || '0.4.33'}
+              </span>
             </div>
             <p className="text-sm text-rose-200/70 max-w-sm font-light leading-relaxed">
-              {content.featuresSection.subtitle}
+              {content.brand.tagline || 'Universal tool for administration of chatting and communication platforms.'}
             </p>
             <div className="flex items-center gap-2 text-xs text-rose-300/80 pt-1">
               <span>{t.footer.builtWithLove}</span>
@@ -46,10 +49,74 @@ export const Footer: React.FC<FooterProps> = ({
             </div>
           </div>
 
-          {/* Quick Links Column */}
+          {/* Official Subpages Column */}
           <div className="md:col-span-3 space-y-3">
             <h4 className="text-xs font-semibold text-rose-300 uppercase tracking-wider">
-              Navigation & Resources
+              Portal &amp; Subpages
+            </h4>
+            <ul className="space-y-2 text-sm text-rose-200/75">
+              <li>
+                <a
+                  href={content.links.projectHtml}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition-colors flex items-center justify-between group"
+                >
+                  <span>Project Overview</span>
+                  <ExternalLink className="w-3 h-3 text-rose-400/70 group-hover:text-white" />
+                </a>
+              </li>
+              <li>
+                <a
+                  href={content.links.releasesHtml}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition-colors flex items-center justify-between group"
+                >
+                  <span>Releases (v0.4.33)</span>
+                  <ExternalLink className="w-3 h-3 text-rose-400/70 group-hover:text-white" />
+                </a>
+              </li>
+              <li>
+                <a
+                  href={content.links.examplesIndex}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition-colors flex items-center justify-between group"
+                >
+                  <span>20+ Marimo Notebooks</span>
+                  <ExternalLink className="w-3 h-3 text-rose-400/70 group-hover:text-white" />
+                </a>
+              </li>
+              <li>
+                <a
+                  href={content.links.llmsTxt}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition-colors flex items-center justify-between group"
+                >
+                  <span>Agent Index (llms.txt)</span>
+                  <ExternalLink className="w-3 h-3 text-rose-400/70 group-hover:text-white" />
+                </a>
+              </li>
+              <li>
+                <a
+                  href={content.links.manifestJson}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition-colors flex items-center justify-between group"
+                >
+                  <span>Site Manifest (manifest.json)</span>
+                  <ExternalLink className="w-3 h-3 text-rose-400/70 group-hover:text-white" />
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Navigation & Tools Column */}
+          <div className="md:col-span-2 space-y-3">
+            <h4 className="text-xs font-semibold text-rose-300 uppercase tracking-wider">
+              Sections
             </h4>
             <ul className="space-y-2 text-sm text-rose-200/75">
               <li>
@@ -74,19 +141,20 @@ export const Footer: React.FC<FooterProps> = ({
               </li>
               <li>
                 <button
-                  onClick={onOpenCms}
-                  className="hover:text-rose-300 text-rose-400 font-medium transition-colors"
+                  onClick={onOpenOpenApiStudio}
+                  className="hover:text-rose-300 text-rose-400 font-medium transition-colors flex items-center gap-1.5"
                 >
-                  {t.nav.contentStudio}
+                  <Zap className="w-3.5 h-3.5" />
+                  <span>{t.nav.openApiStudio || 'OpenAPI Studio'}</span>
                 </button>
               </li>
             </ul>
           </div>
 
           {/* Ecosystem Column */}
-          <div className="md:col-span-4 space-y-3">
+          <div className="md:col-span-3 space-y-3">
             <h4 className="text-xs font-semibold text-rose-300 uppercase tracking-wider">
-              Official Ecosystem Links
+              Ecosystem Links
             </h4>
             <div className="space-y-2 text-sm">
               <a
@@ -105,7 +173,7 @@ export const Footer: React.FC<FooterProps> = ({
                 className="flex items-center gap-2 text-rose-200/80 hover:text-white transition-colors"
               >
                 <BookOpen className="w-4 h-4 text-rose-400" />
-                <span>Documentation (ReadTheDocs)</span>
+                <span>ReadTheDocs Documentation</span>
               </a>
               <a
                 href={content.links.pypi}
@@ -114,7 +182,7 @@ export const Footer: React.FC<FooterProps> = ({
                 className="flex items-center gap-2 text-rose-200/80 hover:text-white transition-colors"
               >
                 <Package className="w-4 h-4 text-rose-400" />
-                <span>Python Package (PyPI)</span>
+                <span>PyPI (amoorion v0.4.33)</span>
               </a>
               <a
                 href={content.links.githubPages}
